@@ -1,29 +1,19 @@
 const express =  require('express');
 const app = express();
+const {adminAuth, userAuth }= require('./middlewares/auth')
 
-app.get('/user',(req,res,next)=>{
-    console.log("Handling route user ");
-    next();
-},
-(req,res,next)=>{
-    console.log("Handling route user2 ");
-    next();
+app.use('/admin',adminAuth);
+app.get('/user',userAuth,(req,res)=>{
+    res.send('user data sent')
+})
 
-},
-(req, res, next)=>{
-    console.log("Handling route user3 ");
-    next();
-},
-(req, res, next)=>{
-    console.log("Handling route user4 ");
-    next();
-},
-(req, res, next)=>{
-    console.log("Handling route user5 ");
-   res.send('5th Response')
-},
+app.get('/admin/getAllData',(req,res)=>{
+res.send('All Data Sent')
+});
 
-)
+app.get('/admin/deleteUser',(req,res)=>{
+    res.send('Deleted data successfully')
+})
 
 app.listen(3000,()=>{
     console.log('successfully started listening on port:3000')
