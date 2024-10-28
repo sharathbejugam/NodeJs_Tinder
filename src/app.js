@@ -1,23 +1,58 @@
 const express =  require('express');
-const app = express();
-const {adminAuth, userAuth }= require('./middlewares/auth')
 
-app.get('/user',(req,res)=>{
+const connectDB = require("./config/database")
+const app = express();
+const User = require('./models/user');
+
+app.use(express.json()) 
+
+app.post('/signup',async (req,res)=>{
+    
+
+    const user = new User(req.body);
     try{
-        throw new error('gujhn')
+        await user.save();
+    res.send('user added successfully')
+    }catch(err){
+        res.status(400).send('error saving teh user data ')
+    }
+})
+
+app.get('/user', async(req,res)=>{
+    const userEmail = req.body.emailId;
+
+    try{
+       const users =  await User.findOne({emailId:userEmail});
+       if(users.length === 0){
+        res.status(404).send('User not found')
+       }else{
+           res.send(users)
+       }
     }
     catch(err){
-        res.status(500).send("sometghing went wrong ")
+        res.status(400).send("Something went wrong ")
     }
 })
 
-app.use('/',(err,req,res,next)=>{
-    if(err){
-        res.status(500).send('Something went wrong')
+app.get('/feed', async(req,res)=>{
+    try{
+        const users = await User.find({});
+        res.send(users)
     }
-});
-
-
-app.listen(3000,()=>{
-    console.log('successfully started listening on port:3000')
+    catch(err){
+        res.status(400).send("Something went wrong ")
+    }
 })
+ 
+
+
+connectDB().then(()=>{
+    console.log("Database connected successfully")
+    app.listen(7777,()=>{
+        console.log('successfully started listening on port:7777')
+    })
+}).catch((err)=>{
+    console.error('not connected')
+
+})  
+
