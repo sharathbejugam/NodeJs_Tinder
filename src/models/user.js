@@ -1,4 +1,7 @@
 const mongoose = require('mongoose');
+const validator = require('validator');
+const bcrypt = require('bcrypt');
+const jwt = require('jsonwebtoken')
 
 const userSchema = mongoose.Schema({
     firstName:{
@@ -15,7 +18,13 @@ const userSchema = mongoose.Schema({
         lowercase:true,
         required:true,
         unique:true,
-        trim:true
+        trim:true,
+        validate(value){
+            if(!validator.isEmail(value)){
+                throw new Error('Inavlid email Address'+ value)
+                
+            }
+        }
     },
     password:{
         type:String,
@@ -35,7 +44,13 @@ const userSchema = mongoose.Schema({
     },
     photoUrl:{
         type:String,
-        default:'https://geographyandyou.com/images/user-profile.png'
+        default:'https://geographyandyou.com/images/user-profile.png',
+        validate(value){
+            if(!validator.isURL(value)){
+                throw new Error('Inavlid photo url'+ value)
+                
+            }
+        }
     },
     about:{
         type:String,
@@ -43,11 +58,31 @@ const userSchema = mongoose.Schema({
     },
     skills:{
         type:[String],
+        // validate(value){
+        //     value.unique
+        // }
+        
     },
 },
 {
     timestamps:true
 })
 
+userSchema.index({firstName:1,lastName:1})
+
+userSchema.methods.getJWT = async function(){
+    const user =this ;
+    const token = await jwt.sign({_id: user._id},"DevTinder@rrru7",{
+        expiresIn:'7d'
+    });
+
+    return token;
+}
+userSchema.methods.validatePassword = async function(passwordInputByUser){
+    const user = this;
+    const passwordHash = user.password;
+    const isPasswordValid = await bcrypt.compare(passwordInputByUser,passwordHash);
+    return isPasswordValid
+}
 const User = mongoose.model("User",userSchema );
 module.exports = User
